@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salladshuset — Sallad om dagen, mikrofon om natten | Linköping</title>
+  <meta name="description" content="Salladshuset på Ågatan 24A i Linköping: färska sallader till lunch, karaokebar till klockan tre på natten onsdag–lördag.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!--
+    KONCEPT v4 (fullständig omdesign på begäran — kunden ogillade v2/v3:s
+    neon-magenta genomgående och versala gigaffisch-typografi):
+    1) Konceptet (dag/natt-dualiteten, byggt på riktiga öppettider) är
+       fortfarande starkt — behålls. Uttrycket är nytt.
+    2) Accentfärgen bytt till djup vinröd — branschprofilens eget exempel,
+       fungerar aptitretande på dagtid OCH stämningsfullt på kvällstid.
+       Neon-magenta löste bara den andra halvan.
+    3) Rubriktypografi bytt till varm serif (matchar arketypen warm_local
+       bättre än versal gigaffisch-sans).
+    4) Signaturmomentet ("16→03") är nu en biljett-stub med perforerad
+       mittlinje istället för ett diagonalt gradientskifte.
+    5) Menyn är nu en biljett-liknande lista med streckad avdelare
+       istället för kort.
+    6) Riktig loggabild (Instagram-profilbilden) används nu i headern
+       istället för bara text.
+    7) Ny: live öppet/stängt-indikator baserad på de verifierade
+       öppettiderna (hanterar att de går över midnatt).
+    8) Allt sakinnehåll oförändrat: adress, telefon, öppettider, betyg
+       4,0 (50 recensioner), meny, Instagram/Facebook. Ingen påhittad
+       e-post eller bokningslänk — de fälten saknas fortfarande ärligt.
+  -->
+
+  <a class="skip-link" href="#main">Hoppa till innehåll</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">
+        <img src="logo.jpg" alt="<!--FIELD:company_name-->Salladshuset<!--/FIELD:company_name-->" class="logo-mark">
+        <span class="logo-text">Salladshuset</span>
+      </a>
+      <nav>
+        <button class="nav-toggle" aria-expanded="false" aria-label="Öppna meny">
+          <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-list">
+          <li><a href="#koncept">Om oss</a></li>
+          <li><a href="#meny">Meny</a></li>
+          <li><a href="#oppettider">Öppettider</a></li>
+          <li><a href="#kontakt">Kontakt</a></li>
+          <li><a href="#boka" class="nav-cta">Boka bord</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-content reveal">
+          <p class="eyebrow">Ågatan 24A · Linköping</p>
+          <h1 class="hero-title">Sallad om dagen.<br>Mikrofon om natten.</h1>
+          <p class="hero-lead">Salladshuset är två ställen i ett — en lunchrestaurang med fokus på färska sallader, som växlar om till karaokebar när kvällen kommer. Öppet tisdag–lördag, som senast till klockan tre.</p>
+          <div class="hero-actions">
+            <!--FIELD:phone-->
+            <a href="tel:0131011111" class="btn btn-primary">Boka bord — ring oss</a>
+            <!--/FIELD:phone-->
+            <a href="#meny" class="btn btn-outline">Se menyn</a>
+          </div>
+          <p class="hero-rating">
+            <!--FIELD:google_rating-->
+            <span class="stars">★★★★</span> 4,0 av 5 · 50 recensioner på Google
+            <!--/FIELD:google_rating-->
+          </p>
+        </div>
+        <div class="hero-glyph reveal" aria-hidden="true">
+          <div class="hero-glyph-blob"></div>
+          <svg viewBox="0 0 200 200" fill="none" stroke="#7C2233" stroke-width="3" stroke-linecap="round">
+            <path d="M55 40 L55 90 M55 90 C55 100 65 105 65 90 L65 40 M60 40 L60 90" />
+            <path d="M55 90 L55 160" />
+            <path d="M145 45 C145 30 130 30 130 45 L130 90 C130 105 145 105 145 90 Z" />
+            <path d="M115 90 C115 110 125 120 137.5 120 C150 120 160 110 160 90" />
+            <path d="M137.5 120 L137.5 160" />
+            <path d="M120 165 L155 165" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- KONCEPT -->
+    <section id="koncept" class="section">
+      <div class="container koncept-inner">
+        <div class="koncept-text reveal">
+          <p class="eyebrow">Två sidor, samma hus</p>
+          <h2 class="section-title">Ett kök, en scen</h2>
+          <p class="lead">På dagtid är Salladshuset en lunchrestaurang: sallader, varma smörgåsar och jordgubbar med choklad, tillagat för hand. När tallrikarna plockats undan flyttas fokus till mikrofonen — karaoke, drinkar och sena kvällar, onsdag till lördag ända fram till klockan tre.</p>
+          <p>Måndag och söndag har vi stängt helt — även vi behöver vila rösten.</p>
+        </div>
+        <figure class="koncept-media reveal">
+          <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=80" alt="Färsk sallad med avokado, tomat och kikärtor" loading="lazy" width="900" height="675">
+        </figure>
+      </div>
+      <p class="container koncept-credit">Foto: Unsplash (ingen egen matbild kunde hämtas från research).</p>
+    </section>
+
+    <!-- MENY — biljett-lista -->
+    <section id="meny" class="section section-tint">
+      <div class="container">
+        <p class="eyebrow reveal">Dagtid</p>
+        <h2 class="section-title reveal">Från köket</h2>
+        <!--FIELD:services-->
+        <div class="menu-list">
+          <div class="menu-item reveal">
+            <div>
+              <h3 class="menu-title">Sallader</h3>
+              <p class="menu-desc">Byggda för hand, bland annat veganska varianter och en klassisk tonfisksallad.</p>
+            </div>
+            <span class="menu-tag"><!--FIELD:prices-->Priser hos oss<!--/FIELD:prices--></span>
+          </div>
+          <div class="menu-item reveal">
+            <div>
+              <h3 class="menu-title">Varma smörgåsar</h3>
+              <p class="menu-desc">Rostat bröd, varm fyllning — för den som vill ha något mer än sallad.</p>
+            </div>
+            <span class="menu-tag"><!--FIELD:prices-->Priser hos oss<!--/FIELD:prices--></span>
+          </div>
+          <div class="menu-item reveal">
+            <div>
+              <h3 class="menu-title">Jordgubbar &amp; choklad</h3>
+              <p class="menu-desc">Husets efterrätt, hela säsongen.</p>
+            </div>
+            <span class="menu-tag"><!--FIELD:prices-->Priser hos oss<!--/FIELD:prices--></span>
+          </div>
+          <div class="menu-item reveal">
+            <div>
+              <h3 class="menu-title">Catering</h3>
+              <p class="menu-desc">Salladsbord och smörgåsar till kontoret eller festen — ring för offert.</p>
+            </div>
+            <span class="menu-tag"><!--FIELD:prices-->Ring för offert<!--/FIELD:prices--></span>
+          </div>
+        </div>
+        <!--/FIELD:services-->
+      </div>
+    </section>
+
+    <!-- TICKET — signaturmomentet, byggt på de riktiga öppettiderna -->
+    <section class="ticket-wrap">
+      <div class="container">
+        <div class="ticket reveal">
+          <div class="ticket-half ticket-half--day">
+            <p class="ticket-eyebrow">Öppnar</p>
+            <p class="ticket-num">16</p>
+            <p class="ticket-sub">Kök &amp; sallader</p>
+          </div>
+          <div class="ticket-seam">
+            <div class="ticket-notch ticket-notch--top"></div>
+            <div class="ticket-notch ticket-notch--bottom"></div>
+          </div>
+          <div class="ticket-half ticket-half--night">
+            <p class="ticket-eyebrow">Stänger</p>
+            <p class="ticket-num">03</p>
+            <p class="ticket-sub">Mikrofon &amp; drinkar</p>
+          </div>
+        </div>
+        <p class="ticket-caption">Onsdag–lördag: lunch blir kväll, kväll blir karaoke. Tisdag stänger vi redan 01:00 — måndag och söndag har vi stängt helt.</p>
+      </div>
+    </section>
+
+    <!-- ÖPPETTIDER -->
+    <section id="oppettider" class="section section-dark">
+      <div class="container hours-inner">
+        <div class="reveal">
+          <p class="eyebrow eyebrow--on-night">Kvällstid</p>
+          <h2 class="section-title section-title--light">Öppettider</h2>
+          <div class="open-indicator" aria-live="polite" id="open-status"></div>
+          <!--FIELD:opening_hours-->
+          <table class="hours-table">
+            <tr class="hours-closed" data-day="mån"><th>Måndag</th><td>Stängt</td></tr>
+            <tr data-day="tis"><th>Tisdag</th><td>15:00–01:00</td></tr>
+            <tr data-day="ons"><th>Onsdag</th><td>16:00–03:00</td></tr>
+            <tr data-day="tor"><th>Torsdag</th><td>16:00–03:00</td></tr>
+            <tr data-day="fre"><th>Fredag</th><td>16:00–03:00</td></tr>
+            <tr data-day="lör"><th>Lördag</th><td>16:00–03:00</td></tr>
+            <tr class="hours-closed" data-day="sön"><th>Söndag</th><td>Stängt</td></tr>
+          </table>
+          <!--/FIELD:opening_hours-->
+          <p class="hours-note">Karaoke körs kvällarna onsdag–lördag, in mot stängning.</p>
+        </div>
+        <figure class="hours-media reveal">
+          <img src="https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=900&q=80" alt="Varmt upplyst bar, kvällsstämning" loading="lazy" width="900" height="675">
+        </figure>
+      </div>
+      <p class="container hours-credit">Foto: Unsplash (ingen egen kvällsbild kunde hämtas från research).</p>
+      <div class="eq" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <!-- RECENSIONER -->
+    <section class="section section-dark">
+      <div class="container reveal">
+        <!--FIELD:google_rating-->
+        <div class="rating-badge">
+          <span class="rating-stars">★★★★</span>
+          <span class="rating-text">4,0 av 5 — 50 recensioner på Google</span>
+        </div>
+        <!--/FIELD:google_rating-->
+        <p class="reviews-note">Riktigt betyg hämtat från Google, inte en tredjepartskatalog.</p>
+      </div>
+    </section>
+
+    <!-- CTA / BOKA -->
+    <section id="boka" class="section section-accent">
+      <div class="container boka-inner reveal">
+        <h2 class="section-title section-title--light">Boka bord — eller en kväll på scenen</h2>
+        <p class="boka-lead">Vi tar inga bokningar online än. Ring så fixar vi bord eller mikrofon.</p>
+        <!--FIELD:booking_url-->
+        <a href="tel:0131011111" class="btn btn-dark-large">013-10 11 11</a>
+        <!--/FIELD:booking_url-->
+      </div>
+    </section>
+
+    <!-- KONTAKT -->
+    <section id="kontakt" class="section section-dark">
+      <div class="container">
+        <h2 class="section-title section-title--light reveal">Hitta hit</h2>
+        <div class="kontakt-grid reveal">
+          <div>
+            <p class="kontakt-sub">Adress</p>
+            <!--FIELD:address-->
+            <address class="kontakt-link">Ågatan 24A<br>582 22 Linköping</address>
+            <!--/FIELD:address-->
+          </div>
+          <div>
+            <p class="kontakt-sub">Telefon</p>
+            <!--FIELD:phone-->
+            <a class="kontakt-link" href="tel:0131011111">013-10 11 11</a>
+            <!--/FIELD:phone-->
+          </div>
+          <div>
+            <p class="kontakt-sub">E-post</p>
+            <!--FIELD:email-->
+            <span class="kontakt-missing">Ingen e-post tillgänglig — ring eller skriv på Instagram</span>
+            <!--/FIELD:email-->
+          </div>
+          <div>
+            <p class="kontakt-sub">Sociala medier</p>
+            <div class="social-links">
+              <a class="social-link" href="https://www.instagram.com/salladshuseet/" target="_blank" rel="noopener">Instagram</a>
+              <a class="social-link" href="https://www.facebook.com/salladshuset-388421245032504" target="_blank" rel="noopener">Facebook</a>
+            </div>
+          </div>
+        </div>
+        <div class="kontakt-karta reveal">
+          <!--FIELD:address-->
+          <iframe
+            title="Karta till Salladshuset, Ågatan 24A, Linköping"
+            src="https://www.google.com/maps?q=%C3%85gatan+24A%2C+582+22+Link%C3%B6ping%2C+Sweden&output=embed"
+            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+          <!--/FIELD:address-->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span class="footer-logo"><!--FIELD:company_name-->Salladshuset<!--/FIELD:company_name--></span>
+      <p class="footer-tagline">Ågatan 24A, Linköping — sallad om dagen, mikrofon om natten</p>
+      <p class="footer-copy">© <span id="year"></span> <!--FIELD:company_name-->Salladshuset<!--/FIELD:company_name--></p>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
