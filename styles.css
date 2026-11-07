@@ -1,0 +1,300 @@
+/* =========================================
+   SALLADSHUSET — v4, fullständig omdesign.
+   Kunden ogillade v2/v3 (neon-magenta genomgående, versal
+   gigaffisch-typografi). Konceptet (sallad om dagen / karaoke om
+   natten, byggt på riktiga öppettider) är fortfarande starkt och
+   behålls — men accentfärgen byts till en djup vinröd (branschprofilens
+   egna exempel: "djup vinröd, guld eller varm terrakotta" — vinröd
+   fungerar både aptitretande på dagtid och stämningsfullt på kvällstid,
+   vilket neon-magenta bara löste hälften av). Typografin byts från
+   versal gigaffisch-sans till en varm serif för rubriker. Signaturmomentet
+   uttrycks nu som en biljett-stub (perforerad linje, "hål" i hörnen)
+   istället för ett diagonalt gradient-skifte.
+========================================= */
+
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --bg: #FBF6EC;
+  --bg-tint: #F3ECDB;
+  --night: #17110D;
+  --night-2: #241A15;
+  --text: #221A14;
+  --text-muted: #6E6154;
+  --text-on-night: #F3ECE0;
+  --text-on-night-muted: #B9AA98;
+
+  --accent: #7C2233;
+  --accent-bright: #C24A5E;
+  --accent-wash: #F1DEE1;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; transition: opacity 0.2s ease; }
+a:hover { opacity: 0.75; }
+address { font-style: normal; }
+ul { list-style: none; }
+button { font: inherit; }
+
+.skip-link { position: absolute; left: -999px; top: 0; background: var(--accent); color: #fff; padding: 0.75rem 1.25rem; font-weight: 700; z-index: 1000; }
+.skip-link:focus { left: 1rem; top: 1rem; }
+
+/* ---- TYPOGRAPHY — varm serif för rubriker, ersätter versal gigaffisch-sans ---- */
+h1, h2, h3 { font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; font-weight: 700; line-height: 1.12; }
+.eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.9rem; }
+.eyebrow--on-night { color: var(--accent-bright); }
+.section-title { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.12; margin-bottom: 1.3rem; }
+.section-title--light { color: var(--text-on-night); }
+.lead { max-width: 62ch; font-size: 1.08rem; color: var(--text-muted); margin-bottom: 1rem; }
+p { max-width: 65ch; color: var(--text-muted); }
+.section-dark p, .section-dark .lead { color: var(--text-on-night-muted); }
+
+/* ---- CONTAINER / RHYTHM ---- */
+.container { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+.section { padding: 6.5rem 0; }
+.section-tint { background-color: var(--bg-tint); }
+.section-dark { background-color: var(--night); }
+.section-accent { background-color: var(--accent); }
+.section-accent .lead, .section-accent p { color: #F1D9DD; }
+
+/* ---- SCROLL REVEAL ---- */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+
+.menu-list > *:nth-child(1) { transition-delay: 0ms; }
+.menu-list > *:nth-child(2) { transition-delay: 60ms; }
+.menu-list > *:nth-child(3) { transition-delay: 120ms; }
+.menu-list > *:nth-child(4) { transition-delay: 180ms; }
+.kontakt-grid > div:nth-child(1) { transition-delay: 0ms; }
+.kontakt-grid > div:nth-child(2) { transition-delay: 60ms; }
+.kontakt-grid > div:nth-child(3) { transition-delay: 120ms; }
+.kontakt-grid > div:nth-child(4) { transition-delay: 180ms; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-list > *, .kontakt-grid > div { transition-delay: 0ms; }
+}
+
+/* ---- BUTTONS ---- */
+.btn { display: inline-block; padding: 0.9rem 2.1rem; font-size: 0.95rem; font-weight: 700; border-radius: 999px; cursor: pointer; touch-action: manipulation; transition: transform 0.2s var(--ease-out), box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease; text-align: center; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background-color: var(--accent); color: #fff; }
+.btn-outline { border: 2px solid var(--text); color: var(--text); }
+.btn-dark-large { background-color: var(--text-on-night); color: var(--night); padding: 1.1rem 2.6rem; font-size: 1.1rem; margin-top: 1.75rem; }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(124,34,51,0.35); opacity: 1; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+  .btn-dark-large:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.4); opacity: 1; }
+}
+
+/* ---- HEADER ---- */
+.site-header { position: sticky; top: 0; z-index: 100; background-color: rgba(251,246,236,0.94); backdrop-filter: blur(6px); border-bottom: 1px solid rgba(34,26,20,0.08); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+.logo { display: flex; align-items: center; gap: 0.65rem; }
+.logo-mark { height: 34px; width: 34px; border-radius: 50%; object-fit: cover; }
+.logo-text { font-family: Georgia, "Iowan Old Style", serif; font-size: 1.15rem; font-weight: 700; color: var(--text); }
+nav { display: flex; align-items: center; }
+.nav-list { display: flex; align-items: center; gap: 2rem; }
+.nav-list a { font-size: 0.86rem; font-weight: 600; color: var(--text-muted); }
+.nav-cta { background-color: var(--accent); color: #fff !important; padding: 0.55rem 1.2rem; border-radius: 999px; touch-action: manipulation; }
+.nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 0.25rem; touch-action: manipulation; }
+.nav-toggle span { display: block; width: 22px; height: 2px; background: var(--text); }
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-list a:hover { color: var(--accent); opacity: 1; }
+  .nav-cta:hover { color: #fff !important; opacity: 0.9; }
+}
+
+/* ---- HERO ---- */
+.hero { position: relative; padding: 6.5rem 0 5rem; overflow: hidden; }
+.hero-inner { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 3rem; align-items: center; }
+.hero-title { font-size: clamp(2.5rem, 5.6vw, 4rem); line-height: 1.08; margin-bottom: 1.3rem; text-wrap: balance; }
+.hero-lead { font-size: 1.12rem; margin-bottom: 1.6rem; }
+.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.hero-rating { font-size: 0.92rem; color: var(--text-muted); }
+.hero-rating .stars { color: var(--accent); letter-spacing: 0.05em; }
+
+.hero-glyph { position: relative; aspect-ratio: 1; max-width: 340px; margin-inline: auto; }
+.hero-glyph-blob {
+  position: absolute; inset: 6%;
+  background: radial-gradient(circle at 35% 30%, var(--accent-wash), transparent 70%);
+  border-radius: 50%;
+}
+.hero-glyph svg { position: relative; width: 100%; height: 100%; }
+
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-glyph { order: -1; max-width: 220px; }
+}
+
+/* ---- KONCEPT ---- */
+.koncept-inner { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 3.5rem; align-items: center; }
+.koncept-media { border-radius: 14px; overflow: hidden; aspect-ratio: 4/3; }
+.koncept-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.koncept-credit { font-size: 0.74rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+/* ---- MENY — biljett-liknande lista med perforerad avdelare ---- */
+.menu-list { margin-top: 1.5rem; }
+.menu-item {
+  display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: baseline;
+  padding: 1.5rem 0;
+  border-bottom: 1px dashed rgba(34,26,20,0.22);
+}
+.menu-item:first-child { border-top: 1px dashed rgba(34,26,20,0.22); }
+.menu-title { font-family: Georgia, "Iowan Old Style", serif; font-size: 1.2rem; margin-bottom: 0.35rem; }
+.menu-desc { font-size: 0.94rem; margin: 0; }
+.menu-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+
+/* ---- TICKET — signaturmomentet, byggt på de riktiga öppettiderna ---- */
+.ticket-wrap { padding: 5rem 0; }
+.ticket {
+  position: relative;
+  max-width: 860px;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  box-shadow: 0 30px 60px -25px rgba(34,26,20,0.35);
+}
+.ticket-half { padding: clamp(2.5rem, 6vw, 4rem) clamp(1.5rem, 4vw, 3rem); text-align: center; }
+.ticket-half--day { background: var(--bg); }
+.ticket-half--night { background: var(--night); }
+.ticket-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.9rem; }
+.ticket-half--day .ticket-eyebrow { color: var(--accent); }
+.ticket-half--night .ticket-eyebrow { color: var(--accent-bright); }
+.ticket-num { font-family: Georgia, "Iowan Old Style", serif; font-size: clamp(3.5rem, 9vw, 6rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.ticket-half--day .ticket-num { color: var(--text); }
+.ticket-half--night .ticket-num { color: var(--text-on-night); }
+.ticket-sub { font-size: 0.92rem; margin-top: 0.6rem; }
+.ticket-half--day .ticket-sub { color: var(--text-muted); }
+.ticket-half--night .ticket-sub { color: var(--text-on-night-muted); }
+
+.ticket-seam { position: relative; width: 0; }
+.ticket-seam::before {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: -1px; width: 2px;
+  background-image: repeating-linear-gradient(to bottom, rgba(34,26,20,0.3) 0 10px, transparent 10px 20px);
+}
+.ticket-notch { position: absolute; width: 28px; height: 28px; border-radius: 50%; background: var(--bg); left: 50%; transform: translateX(-50%); }
+.ticket-notch--top { top: -14px; }
+.ticket-notch--bottom { bottom: -14px; }
+
+.ticket-caption { text-align: center; margin: 1.75rem auto 0; max-width: 46ch; color: var(--text-muted); font-size: 0.95rem; }
+
+@media (max-width: 640px) {
+  .ticket { grid-template-columns: 1fr; }
+  .ticket-seam { display: none; }
+}
+
+/* ---- "DELIGHT"-DETALJEN — equalizer, karaoke-referens ---- */
+.eq { display: flex; justify-content: center; align-items: flex-end; gap: 6px; height: 40px; margin: 2rem 0 0; }
+.eq span { display: block; width: 6px; background: var(--accent-bright); border-radius: 2px; animation: eq-bounce 1.1s var(--ease-in-out) infinite; }
+.eq span:nth-child(1) { height: 14px; animation-delay: 0s; }
+.eq span:nth-child(2) { height: 28px; animation-delay: 0.15s; }
+.eq span:nth-child(3) { height: 38px; animation-delay: 0.3s; }
+.eq span:nth-child(4) { height: 22px; animation-delay: 0.45s; }
+.eq span:nth-child(5) { height: 32px; animation-delay: 0.6s; }
+@keyframes eq-bounce { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .eq span { animation: none; transform: scaleY(0.7); } }
+
+/* ---- ÖPPETTIDER ---- */
+.hours-inner { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 3.5rem; align-items: center; }
+.open-indicator { display: inline-flex; align-items: center; gap: 0.7em; padding: 0.65rem 1.1rem; border-radius: 50px; background: rgba(194,74,94,0.16); font-weight: 700; font-size: 1rem; color: var(--text-on-night); margin-bottom: 1.5rem; }
+.open-indicator .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-on-night-muted); }
+.open-indicator.is-open .dot { background: #7BC98E; animation: pulse-soft 2.2s var(--ease-in-out) infinite; }
+@keyframes pulse-soft { 0%, 100% { box-shadow: 0 0 0 0 rgba(123,201,142,0.5); } 50% { box-shadow: 0 0 0 7px rgba(123,201,142,0); } }
+@media (prefers-reduced-motion: reduce) { .open-indicator.is-open .dot { animation: none; } }
+
+.hours-table { width: 100%; max-width: 460px; border-collapse: collapse; margin: 0 0 1.5rem; }
+.hours-table tr { border-bottom: 1px solid rgba(243,241,234,0.12); }
+.hours-table tr:last-child { border-bottom: none; }
+.hours-table th, .hours-table td { padding: 0.85rem 0; font-size: 1rem; color: var(--text-on-night); font-weight: 500; }
+.hours-table th { text-align: left; font-weight: 600; }
+.hours-table td { text-align: right; font-weight: 700; color: var(--accent-bright); font-variant-numeric: tabular-nums; }
+.hours-closed td { color: var(--text-on-night-muted); }
+.hours-table tr.is-today th, .hours-table tr.is-today td { color: #fff; }
+.hours-note { font-size: 0.95rem; color: var(--text-on-night-muted); }
+.hours-media { border-radius: 14px; overflow: hidden; aspect-ratio: 4/3; }
+.hours-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hours-credit { font-size: 0.74rem; color: var(--text-on-night-muted); margin-top: 0.5rem; }
+
+/* ---- RECENSIONER ---- */
+.rating-badge { display: inline-flex; align-items: center; gap: 1rem; background: rgba(194,74,94,0.14); border-left: 3px solid var(--accent-bright); padding: 1.1rem 1.6rem; margin-bottom: 1.1rem; border-radius: 4px; flex-wrap: wrap; }
+.rating-stars { color: var(--accent-bright); font-size: 1.2rem; letter-spacing: 0.05em; }
+.rating-text { font-size: 0.95rem; font-weight: 700; color: var(--text-on-night); }
+.reviews-note { font-size: 0.9rem; }
+
+/* ---- CTA ---- */
+.boka-inner { text-align: center; }
+.boka-lead { max-width: 520px; margin: 0 auto; }
+
+/* ---- KONTAKT ---- */
+.kontakt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-top: 1rem; margin-bottom: 2.5rem; }
+.kontakt-sub { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-bright); margin-bottom: 0.7rem; }
+.kontakt-link { font-size: 1.02rem; font-weight: 600; color: var(--text-on-night); transition: color 0.2s ease; }
+.kontakt-missing { font-size: 0.88rem; color: var(--text-on-night-muted); font-style: italic; }
+.social-links { display: flex; flex-direction: column; gap: 0.5rem; }
+.social-link { color: var(--text-on-night-muted); font-size: 0.92rem; font-weight: 600; }
+
+@media (hover: hover) and (pointer: fine) {
+  .kontakt-link:hover { color: var(--accent-bright); }
+  .social-link:hover { color: var(--accent-bright); }
+}
+
+.kontakt-karta { border-radius: 14px; overflow: hidden; min-height: 320px; border: 1px solid rgba(243,241,234,0.14); }
+.kontakt-karta iframe { width: 100%; height: 100%; border: 0; min-height: 320px; }
+
+/* ---- FOOTER ---- */
+.site-footer { background-color: #0F0B08; padding: 2.75rem 0; }
+.footer-inner { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+.footer-logo { font-family: Georgia, "Iowan Old Style", serif; font-size: 1.1rem; font-weight: 700; color: var(--text-on-night); }
+.footer-tagline { font-size: 0.85rem; color: #8a8578; }
+.footer-copy { font-size: 0.78rem; color: #5c584c; margin-top: 0.25rem; }
+
+/* ---- 404 ---- */
+.notfound { min-height: 60vh; display: flex; align-items: center; }
+.notfound-inner { max-width: 60ch; }
+.notfound-inner .lead { margin-bottom: 2rem; }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 1024px) {
+  .koncept-inner, .hours-inner { grid-template-columns: 1fr; gap: 2rem; }
+  .kontakt-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .section { padding: 4.5rem 0; }
+  .ticket-wrap { padding: 3.5rem 0; }
+  .nav-toggle { display: flex; }
+  .nav-list {
+    display: flex; flex-direction: column; align-items: flex-start; position: absolute; top: 100%; left: 0; right: 0;
+    background-color: var(--bg); border-bottom: 1px solid rgba(34,26,20,0.1); padding: 1.5rem; gap: 1.1rem; z-index: 200;
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity 200ms var(--ease-drawer), transform 200ms var(--ease-drawer), visibility 0s linear 200ms;
+  }
+  .nav-list.is-open {
+    opacity: 1; visibility: visible; transform: translateY(0);
+    transition: opacity 200ms var(--ease-drawer), transform 200ms var(--ease-drawer), visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-list { transition: opacity 150ms ease, visibility 0s linear 150ms; transform: none; }
+    .nav-list.is-open { transition: opacity 150ms ease, visibility 0s linear 0s; }
+  }
+  .hero-actions { flex-direction: column; }
+  .hero-actions .btn { width: 100%; }
+  .kontakt-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}
