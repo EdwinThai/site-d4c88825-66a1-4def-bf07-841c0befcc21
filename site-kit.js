@@ -2326,7 +2326,17 @@
      * without what the phone wrote into the file, such as where it was taken). A video, a document or a picture the
      * browser can't open is turned away here; the server checks it all again (config/bookingPhotos.ts).
      */
-    var PHOTO_MAX = 3, PHOTO_OUT_MAX = 1000000;
+    var PHOTO_MAX = 3, PHOTO_OUT_MAX = 1000000, photosAsked = null;
+    /** Whether this business takes photos (GET /bookings/:id/booking-options), asked once per page; no answer = no. */
+    function photosAllowed() {
+      if (!photosAsked) {
+        photosAsked = !apiBase || !companyId || !window.fetch ? Promise.resolve(false)
+          : fetch(apiBase + "/bookings/" + encodeURIComponent(companyId) + "/booking-options")
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (o) { return !!(o && o.photos === true); }, function () { return false; });
+      }
+      return photosAsked;
+    }
     function photoFromFile(file) {
       return new Promise(function (resolve, reject) {
         var type = file.type || "";
@@ -2464,7 +2474,10 @@
       msgOpen.hidden = !msgField.hidden;
       form.appendChild(msgOpen);
       form.appendChild(msgField);
-      form.appendChild(photoPicker());
+      // Inspirationsbilder only where the server says so: hairdressers and salons (2026-11-23)
+      var photoSlot = mk("div", "bf-photo-slot");
+      form.appendChild(photoSlot);
+      photosAllowed().then(function (ok) { if (ok && photoSlot.isConnected && !photoSlot.firstChild) photoSlot.appendChild(photoPicker()); });
       // Enter in a field books, like the button (a hidden submit button makes the phone's keyboard offer "Klar/Gå")
       var hiddenSubmit = mk("button"); hiddenSubmit.type = "submit"; hiddenSubmit.hidden = true; form.appendChild(hiddenSubmit);
       var err = mk("p", "bd-error");
@@ -2608,6 +2621,7 @@
       return (withVariant ? ["variant"] : []).concat(["time", "details", "done"]);
     }
     function open(service) {
+      photosAllowed(); // asked now, answered before Dina uppgifter
       // A broad service group (wireServiceGroups): pick the exact variant first.
       if (service.variants) service = Object.assign({}, service, { variants: service.variants.map(withCatalogDuration) });
       service = withCatalogDuration(service);
