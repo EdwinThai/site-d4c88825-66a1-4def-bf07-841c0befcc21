@@ -1845,11 +1845,7 @@
       var picks = [];
       var a = state.answers;
       if (a.hairLength) picks.push("Hår: " + a.hairLength.toLowerCase() + (a.hairThickness ? ", " + (a.hairThickness === HAIR_TYPE_UNSURE ? "tjocklek okänd" : a.hairThickness.toLowerCase()) : ""));
-      if (state.staff) picks.push(state.staff === "any" ? "Vem som helst" : state.staff.name);
-      if (state.slot) picks.push(fmtSlot(state.slot.dateStr, state.slot.time));
-      // Always two lines (an empty one to start with), so the first answer
-      // doesn't push the options down mid-click.
-      summary.appendChild(mk("div", "bf-summary-picks", picks.length ? picks.join(" · ") : " "));
+      if (picks.length) summary.appendChild(mk("div", "bf-summary-picks", picks.join(" · ")));
     }
 
     function setFooter(label, enabled, onClick) {
@@ -1868,10 +1864,13 @@
       body.innerHTML = "";
       body.scrollTop = 0;
       dismissPicker = null;
+      body.classList.remove("is-loading");
+      modal.setAttribute("data-step", step.indexOf("q:") === 0 ? "question" : step);
       renderSummary();
+      // the summary line is for the steps before the details; there the card says it all, once
+      summary.hidden = step === "details" || step === "done";
       if (step === "variant") renderVariantStep();
       else if (step.indexOf("q:") === 0) renderQuestionStep(step.slice(2));
-      else if (step === "staff") renderStaffStep();
       else if (step === "time") renderTimeStep();
       else if (step === "details") renderDetailsStep();
       else renderDoneStep();
@@ -1984,45 +1983,6 @@
       updateQuestionFooter(qid);
     }
 
-    // ---- step: stylist ----
-    function renderStaffStep() {
-      title.textContent = "Välj frisör";
-      setFooter(null);
-      var holder = mk("div", "bf-tiles bf-staff");
-      body.appendChild(holder);
-      holder.appendChild(mk("p", "bf-hint", "Hämtar personal…"));
-      loadStaff().then(function (list) {
-        if (steps[stepIndex] !== "staff") return;
-        holder.innerHTML = "";
-        if (!list) { holder.appendChild(mk("p", "bf-hint", "Kunde inte nå bokningssystemet just nu. Försök igen om en stund.")); return; }
-        if (list.length === 0) { holder.appendChild(mk("p", "bf-hint", "Onlinebokningen öppnar inom kort. Hör av dig direkt till oss så hjälper vi dig hitta en tid.")); return; }
-        function staffTile(label, sub, avatarNode, value) {
-          var tile = mk("button", "bf-tile bf-staff-tile");
-          tile.type = "button";
-          tile.setAttribute("aria-pressed", String(state.staff === value || (state.staff && value && state.staff.id === value.id)));
-          tile.appendChild(avatarNode);
-          tile.appendChild(mk("span", "bf-tile-label", label));
-          if (sub) tile.appendChild(mk("span", "bf-tile-sub", sub));
-          tile.addEventListener("click", function () {
-            state.staff = value;
-            state.slot = null;
-            state.weekOffset = 0;
-            state.weekPicked = false;
-            next();
-          });
-          return tile;
-        }
-        if (list.length > 1) {
-          var anyAvatar = mk("span", "bf-avatar is-any");
-          anyAvatar.innerHTML = ANYONE_ICON;
-          holder.appendChild(staffTile("Vem som helst", "Första lediga tid", anyAvatar, "any"));
-        }
-        list.forEach(function (s) {
-          holder.appendChild(staffTile(s.name, s.title || "", mk("span", "bf-avatar", initials(s.name)), s));
-        });
-      });
-    }
-
     // ---- step: time ----
     function candidateStaff() {
       return state.staff === "any" ? (staffList || []) : [state.staff];
@@ -2049,8 +2009,50 @@
     }
 
     function renderTimeStep() {
+      // 2026-11-14 (Edwin: the booking should be simpler and better looking, above all on a phone). One step for
+      // "with whom and when": the stylists as a row of choices on top ("Vem som helst" already chosen), the week as
+      // seven day buttons that say how many times each has, and the chosen day's times as large buttons. The first
+      // day with a free time is already open, so the next free time is on screen without a tap. The old step with
+      // one stylist per tile and the seven narrow columns of small times are gone.
       title.textContent = "Välj tid";
       setFooter(null);
+      var wait = mk("p", "bf-hint", "Hämtar lediga tider…");
+      body.appendChild(wait);
+      loadStaff().then(function (list) {
+        if (steps[stepIndex] !== "time") return;
+        body.innerHTML = "";
+        if (!list) { body.appendChild(mk("p", "bf-hint", "Kunde inte nå bokningssystemet just nu. Försök igen om en stund.")); return; }
+        if (list.length === 0) { body.appendChild(mk("p", "bf-hint", "Onlinebokningen öppnar inom kort. Hör av dig direkt till oss så hjälper vi dig hitta en tid.")); return; }
+        if (!state.staff) state.staff = list.length === 1 ? list[0] : "any";
+        buildTimeStep(list);
+      });
+    }
+    function buildTimeStep(list) {
+      // ---- with whom ----
+      if (list.length > 1) {
+        var who = mk("div", "bf-who");
+        who.setAttribute("role", "group");
+        who.setAttribute("aria-label", "Välj frisör");
+        var whoBtn = function (label, value, avatar) {
+          var b = mk("button", "bf-who-btn");
+          b.type = "button";
+          b.setAttribute("aria-pressed", String(state.staff === value || (state.staff && value && state.staff.id && state.staff.id === value.id)));
+          b.appendChild(avatar);
+          b.appendChild(mk("span", null, label));
+          b.addEventListener("click", function () {
+            state.staff = value; state.slot = null; state.dayStr = null; state.weekPicked = false; state.notice = "";
+            goTo(stepIndex);
+          });
+          return b;
+        };
+        var anyAvatar = mk("span", "bf-avatar is-any");
+        anyAvatar.innerHTML = ANYONE_ICON;
+        who.appendChild(whoBtn("Vem som helst", "any", anyAvatar));
+        list.forEach(function (p) { who.appendChild(whoBtn(p.name, p, mk("span", "bf-avatar", initials(p.name)))); });
+        body.appendChild(who);
+      }
+
+      // ---- which week ----
       var calHead = mk("div", "booking-cal-head");
       var prev = mk("button", "booking-cal-nav", "‹");
       prev.type = "button";
@@ -2073,14 +2075,19 @@
       picker.setAttribute("role", "dialog");
       picker.setAttribute("aria-label", "Välj vecka");
       calHead.appendChild(picker);
-      var grid = mk("div", "booking-cal-grid");
       var note = mk("p", "booking-cal-next-available");
       note.hidden = true;
+      var daysRow = mk("div", "bf-days");
+      daysRow.setAttribute("role", "group");
+      daysRow.setAttribute("aria-label", "Välj dag");
+      var slotsBox = mk("div", "bf-slots");
+      slotsBox.setAttribute("aria-live", "polite");
       body.appendChild(calHead);
-      body.appendChild(grid);
       body.appendChild(note);
-      prev.addEventListener("click", function () { if (state.weekOffset > 0) { state.weekOffset--; closePicker(); loadWeek(); } });
-      nxt.addEventListener("click", function () { state.weekOffset++; closePicker(); loadWeek(); });
+      body.appendChild(daysRow);
+      body.appendChild(slotsBox);
+      prev.addEventListener("click", function () { if (state.weekOffset > 0) { state.weekOffset--; state.dayStr = null; closePicker(); loadWeek(); } });
+      nxt.addEventListener("click", function () { state.weekOffset++; state.dayStr = null; closePicker(); loadWeek(); });
       range.addEventListener("click", function () {
         if (!picker.hidden) { closePicker(); return; }
         var monday = startOfWeek(state.weekOffset);
@@ -2145,6 +2152,7 @@
             }
             row.addEventListener("click", function () {
               state.weekOffset = offset;
+              state.dayStr = null;
               closePicker();
               loadWeek();
             });
@@ -2152,6 +2160,54 @@
           })(new Date(start));
           start.setDate(start.getDate() + 7);
         }
+      }
+
+      // What the week holds, kept so a tap on another day only redraws the times.
+      var week = null;
+      function drawDays() {
+        var todayStr = isoDate(new Date());
+        daysRow.innerHTML = "";
+        week.days.forEach(function (d) {
+          var dateStr = isoDate(d), n = (week.perDay[dateStr] || []).length, closed = week.closedDays[dateStr];
+          var b = mk("button", "bf-day" + (dateStr === todayStr ? " is-today" : "") + (n ? "" : " is-empty"));
+          b.type = "button";
+          b.setAttribute("aria-pressed", String(dateStr === state.dayStr));
+          var why = n ? n + (n === 1 ? " tid" : " tider") : dateStr < todayStr ? "" : closed ? (typeof closed === "string" ? closed : "Stängt") : "Fullt";
+          b.setAttribute("aria-label", WEEKDAY_SHORT[d.getDay()] + " " + d.getDate() + " " + MONTHS_SHORT[d.getMonth()] + (why ? ", " + why : ""));
+          b.appendChild(mk("span", "bf-day-wd", dateStr === todayStr ? "Idag" : WEEKDAY_SHORT[d.getDay()]));
+          b.appendChild(mk("span", "bf-day-dt", String(d.getDate())));
+          b.appendChild(mk("span", "bf-day-n", why || " "));
+          b.addEventListener("click", function () { state.dayStr = dateStr; drawDays(); drawSlots(); });
+          daysRow.appendChild(b);
+        });
+      }
+      function drawSlots() {
+        slotsBox.innerHTML = "";
+        var dateStr = state.dayStr, slots = (week.perDay[dateStr] || []).slice();
+        var d = new Date(dateStr + "T00:00:00");
+        slotsBox.appendChild(mk("h3", "bf-slots-day", WEEKDAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTHS_LONG[d.getMonth()].toLowerCase()));
+        if (!slots.length) {
+          var closed = week.closedDays[dateStr];
+          slotsBox.appendChild(mk("p", "bf-slots-none", closed === true ? "Stängt den här dagen." : typeof closed === "string" ? closed + "." : "Inga lediga tider den här dagen."));
+          return;
+        }
+        [["Förmiddag", 0, 720], ["Eftermiddag", 720, 1020], ["Kväll", 1020, 1441]].forEach(function (part) {
+          var inPart = slots.filter(function (t) { var m = hmToMin(t); return m >= part[1] && m < part[2]; });
+          if (!inPart.length) return;
+          slotsBox.appendChild(mk("p", "bf-slots-part", part[0]));
+          var grid = mk("div", "bf-slot-grid");
+          inPart.forEach(function (time) {
+            var b = mk("button", "slot-btn bf-slot", time);
+            b.type = "button";
+            b.addEventListener("click", function () {
+              state.slot = { dateStr: dateStr, time: time, staffId: week.whoHas[dateStr + "|" + time][0] };
+              state.notice = "";
+              next();
+            });
+            grid.appendChild(b);
+          });
+          slotsBox.appendChild(grid);
+        });
       }
 
       function loadWeek() {
@@ -2164,10 +2220,10 @@
         nxt.disabled = isoDate(nextMonday) > lastBookable;
         var days = [];
         for (var i = 0; i < 7; i++) { var d = new Date(monday); d.setDate(d.getDate() + i); days.push(d); }
-        grid.classList.add("is-loading");
-        note.hidden = true;
+        body.classList.add("is-loading");
         var people = candidateStaff();
         var duration = state.service.durationMinutes;
+        var asked = state.staff, askedWeek = state.weekOffset;
         var jobs = [];
         days.forEach(function (d) {
           people.forEach(function (p) {
@@ -2187,17 +2243,19 @@
           });
         });
         Promise.all(jobs).then(function (results) {
-          if (steps[stepIndex] !== "time") return;
+          if (steps[stepIndex] !== "time" || state.staff !== asked || state.weekOffset !== askedWeek || !daysRow.isConnected) return;
           var perDay = {};
           var whoHas = {};
           var closedCount = {};
           var offCount = {};
           var tooFar = {};
+          var todayStr = isoDate(new Date());
           results.forEach(function (r) {
             perDay[r.dateStr] = perDay[r.dateStr] || [];
             if (r.closed) closedCount[r.dateStr] = (closedCount[r.dateStr] || 0) + 1;
             if (r.timeOff) offCount[r.dateStr] = (offCount[r.dateStr] || 0) + 1;
             if (r.tooFarAhead) tooFar[r.dateStr] = true;
+            if (r.dateStr < todayStr) return; // a day that has been is never bookable
             r.slots.forEach(function (t) {
               var key = r.dateStr + "|" + t;
               if (!whoHas[key]) { whoHas[key] = []; perDay[r.dateStr].push(t); }
@@ -2205,8 +2263,10 @@
             });
           });
           var closedDays = {};
+          var open = 0;
           Object.keys(perDay).forEach(function (k) {
             perDay[k].sort();
+            open += perDay[k].length;
             // Everyone closed: "Stängt". Nobody available because someone is
             // on time off (sick, vacation): "Ej tillgänglig", never "Fullbokat".
             var closedN = closedCount[k] || 0;
@@ -2215,12 +2275,22 @@
             else if (offN > 0 && closedN + offN === people.length) closedDays[k] = "Ej tillgänglig";
             if (tooFar[k]) closedDays[k] = "Ej bokningsbar än";
           });
-          var open = renderAvailabilityGrid(grid, days, perDay, function (dateStr, time) {
-            state.slot = { dateStr: dateStr, time: time, staffId: whoHas[dateStr + "|" + time][0] };
-            next();
-          }, closedDays);
-          grid.classList.remove("is-loading");
-          if (open === 0) {
+          week = { days: days, perDay: perDay, whoHas: whoHas, closedDays: closedDays };
+          // The day already chosen stays when it is in this week; else the first day with a free time (or just
+          // the first day that hasn't been, when the week is full).
+          var inWeek = days.some(function (d) { return isoDate(d) === state.dayStr; });
+          if (!inWeek || !(perDay[state.dayStr] || []).length) {
+            var firstOpen = days.filter(function (d) { return (perDay[isoDate(d)] || []).length; })[0];
+            if (firstOpen) state.dayStr = isoDate(firstOpen);
+            else if (!inWeek) state.dayStr = isoDate(days.filter(function (d) { return isoDate(d) >= todayStr; })[0] || days[0]);
+          }
+          drawDays();
+          drawSlots();
+          body.classList.remove("is-loading");
+          note.hidden = true;
+          note.textContent = "";
+          if (state.notice) { note.hidden = false; note.textContent = state.notice; }
+          else if (open === 0) {
             note.hidden = false;
             // Past the booking limit there is no next week to offer.
             if (nxt.disabled) {
@@ -2229,7 +2299,7 @@
               note.textContent = "Inga lediga tider den här veckan. ";
               var jump = mk("button", "chip-link-btn", "Visa nästa vecka");
               jump.type = "button";
-              jump.addEventListener("click", function () { state.weekOffset++; loadWeek(); });
+              jump.addEventListener("click", function () { state.weekOffset++; state.dayStr = null; loadWeek(); });
               note.appendChild(jump);
             }
           }
@@ -2239,15 +2309,112 @@
       if (state.weekPicked) loadWeek();
       else {
         state.weekPicked = true;
-        firstFreeWeek().then(function (offset) { state.weekOffset = offset; if (steps[stepIndex] === "time") loadWeek(); });
+        var askedFor = state.staff;
+        firstFreeWeek().then(function (offset) { if (steps[stepIndex] !== "time" || state.staff !== askedFor) return; state.weekOffset = offset; loadWeek(); });
       }
       clearInterval(refreshTimer);
       refreshTimer = setInterval(function () {
-        if (popup.classList.contains("is-open") && steps[stepIndex] === "time" && document.visibilityState === "visible") loadWeek();
+        if (popup.classList.contains("is-open") && steps[stepIndex] === "time" && document.visibilityState === "visible" && daysRow.isConnected) loadWeek();
       }, 15000);
     }
 
     // ---- step: contact details ----
+    /**
+     * Inspirationsbilder (2026-11-23, Edwin: "de ska kunna skicka in inspobild också, men det måste vara en begränsning.
+     * de ska inte kunna skicka videor"): up to PHOTO_MAX photos with the booking. The picker offers only pictures; each
+     * one is drawn again here as a JPEG of at most 1600 px (a few hundred kB instead of a phone's 3 to 10 MB, and
+     * without what the phone wrote into the file, such as where it was taken). A video, a document or a picture the
+     * browser can't open is turned away here; the server checks it all again (config/bookingPhotos.ts).
+     */
+    var PHOTO_MAX = 3, PHOTO_OUT_MAX = 1000000;
+    function photoFromFile(file) {
+      return new Promise(function (resolve, reject) {
+        var type = file.type || "";
+        if (/^video\//i.test(type)) return reject("Videor går inte att skicka, bara bilder.");
+        if (type && !/^image\//i.test(type)) return reject("Bara bilder går att skicka med.");
+        if (file.size > 40 * 1024 * 1024) return reject("Bilden är för stor. Välj en annan bild.");
+        var src = URL.createObjectURL(file), img = new Image();
+        img.onload = function () {
+          URL.revokeObjectURL(src);
+          var w = img.naturalWidth, h = img.naturalHeight;
+          if (!w || !h) return reject("Bilden kunde inte läsas. Välj en annan bild.");
+          // smaller and a little more compressed until it is under PHOTO_OUT_MAX (a busy 1600 px photo seldom needs it)
+          var tries = [[1600, 0.82], [1280, 0.75], [1000, 0.7]];
+          for (var i = 0; i < tries.length; i++) {
+            var k = Math.min(1, tries[i][0] / Math.max(w, h)), c = document.createElement("canvas");
+            c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+            var ctx = c.getContext("2d");
+            ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); // a see-through PNG gets white, not black
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            var url = c.toDataURL("image/jpeg", tries[i][1]), b64 = url.slice(url.indexOf(",") + 1);
+            if (url.indexOf("data:image/jpeg") !== 0) return reject("Bilden kunde inte läsas. Välj en annan bild.");
+            if (b64.length * 0.75 <= PHOTO_OUT_MAX) return resolve({ b64: b64, url: url });
+          }
+          reject("Bilden är för stor. Välj en annan bild.");
+        };
+        img.onerror = function () { URL.revokeObjectURL(src); reject("Bilden kunde inte läsas. Välj en vanlig bild, till exempel JPG eller PNG."); };
+        img.src = src;
+      });
+    }
+    /** "+ Lägg till inspirationsbild", then the photos as small squares with a cross each, and a square to add one more. */
+    function photoPicker() {
+      var wrap = mk("div", "bf-photos");
+      var input = mk("input");
+      input.type = "file"; input.accept = "image/*"; input.multiple = true; input.hidden = true; input.tabIndex = -1;
+      input.setAttribute("aria-hidden", "true");
+      var open = mk("button", "bf-photo-open", "+ Lägg till inspirationsbild");
+      open.type = "button";
+      var label = mk("p", "bf-photo-label");
+      var row = mk("div", "bf-photo-row");
+      var hint = mk("p", "bf-photo-hint", "Högst " + PHOTO_MAX + " bilder, inga videor. Bara salongen ser dem.");
+      var perr = mk("p", "bf-photo-err");
+      perr.setAttribute("role", "alert");
+      var busy = false;
+      function pick() { if (!busy && state.photos.length < PHOTO_MAX) { perr.textContent = ""; perr.hidden = true; input.click(); } }
+      function draw() {
+        var n = state.photos.length;
+        open.hidden = n > 0 || busy;
+        row.hidden = hint.hidden = label.hidden = n === 0 && !busy;
+        label.textContent = n > 1 ? "Inspirationsbilder" : "Inspirationsbild";
+        perr.hidden = !perr.textContent;
+        row.innerHTML = "";
+        state.photos.forEach(function (p, i) {
+          var tile = mk("div", "bf-photo");
+          var im = mk("img"); im.src = p.url; im.alt = "Inspirationsbild " + (i + 1);
+          var x = mk("button", "bf-photo-x", "×");
+          x.type = "button"; x.setAttribute("aria-label", "Ta bort bild " + (i + 1));
+          x.addEventListener("click", function () { state.photos.splice(i, 1); perr.textContent = ""; draw(); (row.querySelector(".bf-photo-x") || open).focus(); });
+          tile.appendChild(im); tile.appendChild(x); row.appendChild(tile);
+        });
+        if (busy) row.appendChild(mk("div", "bf-photo is-busy", "…"));
+        else if (n > 0 && n < PHOTO_MAX) {
+          var add = mk("button", "bf-photo bf-photo-add", "+");
+          add.type = "button"; add.setAttribute("aria-label", "Lägg till en bild till");
+          add.addEventListener("click", pick);
+          row.appendChild(add);
+        }
+      }
+      open.addEventListener("click", pick);
+      input.addEventListener("change", function () {
+        var files = Array.prototype.slice.call(input.files || []);
+        input.value = "";
+        if (!files.length) return;
+        var room = PHOTO_MAX - state.photos.length;
+        perr.textContent = files.length > room ? "Högst " + PHOTO_MAX + " bilder, så bara " + (room === 1 ? "den första" : "de " + room + " första") + " togs med." : "";
+        files = files.slice(0, Math.max(0, room));
+        busy = true; draw();
+        var mine = state;
+        files.reduce(function (p, f) {
+          return p.then(function () {
+            return photoFromFile(f).then(function (photo) { if (state === mine && state.photos.length < PHOTO_MAX) state.photos.push(photo); },
+              function (msg) { perr.textContent = typeof msg === "string" ? msg : "Bilden kunde inte läsas. Välj en annan bild."; });
+          });
+        }, Promise.resolve()).then(function () { busy = false; if (state === mine) draw(); });
+      });
+      wrap.appendChild(input); wrap.appendChild(open); wrap.appendChild(label); wrap.appendChild(row); wrap.appendChild(hint); wrap.appendChild(perr);
+      draw();
+      return wrap;
+    }
     function field(label, input) {
       var f = mk("div", "bd-field");
       var l = mk("label", null, label);
@@ -2259,6 +2426,8 @@
     }
     function renderDetailsStep() {
       title.textContent = "Dina uppgifter";
+      // 2026-11-14: one name field instead of two, the phone's own autofill on every field, the message behind a
+      // link, and the summary only here (the line under the heading is hidden on this step, see goTo).
       var staffLabel = state.slot && state.slot.staffId ? staffName(state.slot.staffId) : "";
       var card = mk("dl", "bf-recap");
       [
@@ -2276,17 +2445,28 @@
       });
       body.appendChild(card);
 
-      var first = mk("input"); first.type = "text"; first.autocomplete = "given-name";
-      var last = mk("input"); last.type = "text"; last.autocomplete = "family-name";
-      var tel = mk("input"); tel.type = "tel";
-      var mail = mk("input"); mail.type = "email"; mail.autocomplete = "email"; mail.placeholder = "namn@exempel.se";
+      var first = mk("input"); first.type = "text"; first.autocomplete = "name"; first.name = "name"; first.placeholder = "För- och efternamn"; first.setAttribute("autocapitalize", "words");
+      var tel = mk("input"); tel.type = "tel"; tel.name = "tel";
+      var mail = mk("input"); mail.type = "email"; mail.name = "email"; mail.autocomplete = "email"; mail.placeholder = "namn@exempel.se"; mail.setAttribute("inputmode", "email"); mail.setAttribute("autocapitalize", "off");
       var msg = mk("textarea"); msg.rows = 2; msg.maxLength = 300; msg.placeholder = state.profile.message || "T.ex. önskemål eller allergier";
-      var form = mk("div", "bf-form");
-      form.appendChild(field("Förnamn", first));
-      form.appendChild(field("Efternamn", last));
-      form.appendChild(field("E-post", mail));
+      var form = mk("form", "bf-form");
+      form.setAttribute("novalidate", "");
+      form.setAttribute("autocomplete", "on");
+      form.addEventListener("submit", function (e) { e.preventDefault(); nextBtn.click(); });
+      form.appendChild(field("Namn", first));
       form.appendChild(field("Telefonnummer", tel));
-      form.appendChild(field("Meddelande (valfritt)", msg));
+      form.appendChild(field("E-post", mail));
+      var msgField = field("Meddelande (valfritt)", msg);
+      var msgOpen = mk("button", "bf-msg-open", "+ Lägg till ett meddelande till salongen");
+      msgOpen.type = "button";
+      msgOpen.addEventListener("click", function () { msgField.hidden = false; msgOpen.hidden = true; msg.focus(); });
+      msgField.hidden = !(state.contact && state.contact.msg);
+      msgOpen.hidden = !msgField.hidden;
+      form.appendChild(msgOpen);
+      form.appendChild(msgField);
+      form.appendChild(photoPicker());
+      // Enter in a field books, like the button (a hidden submit button makes the phone's keyboard offer "Klar/Gå")
+      var hiddenSubmit = mk("button"); hiddenSubmit.type = "submit"; hiddenSubmit.hidden = true; form.appendChild(hiddenSubmit);
       var err = mk("p", "bd-error");
       err.setAttribute("role", "alert");
       err.hidden = true;
@@ -2303,22 +2483,21 @@
         body.appendChild(privacy);
       }
       var phone = wirePhoneInput(tel);
-      [first, last, mail, tel].forEach(function (i) { i.addEventListener("input", function () { if (i.hasAttribute("aria-invalid")) showErr(""); }); });
-      if (state.contact) { first.value = state.contact.first; last.value = state.contact.last; mail.value = state.contact.email || ""; msg.value = state.contact.msg; }
+      [first, mail, tel].forEach(function (i) { i.addEventListener("input", function () { if (i.hasAttribute("aria-invalid")) showErr(""); }); });
+      if (state.contact) { first.value = state.contact.name; mail.value = state.contact.email || ""; msg.value = state.contact.msg; if (state.contact.tel) { tel.value = state.contact.tel; tel.dispatchEvent(new Event("input")); } }
 
       function showErr(text, input) {
-        [first, last, mail, tel].forEach(function (i) { i.removeAttribute("aria-invalid"); });
+        [first, mail, tel].forEach(function (i) { i.removeAttribute("aria-invalid"); });
         err.textContent = text || "";
         err.hidden = !text;
         if (input) { input.setAttribute("aria-invalid", "true"); input.focus(); }
       }
       setFooter("Bekräfta bokning", true, function () {
-        if (!/\p{L}/u.test(first.value)) return showErr("Fyll i ditt förnamn.", first);
-        if (!/\p{L}/u.test(last.value)) return showErr("Fyll i ditt efternamn.", last);
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail.value.trim())) return showErr("Fyll i din e-post, så skickar vi en bekräftelse.", mail);
+        if (!/\p{L}{2,}/u.test(first.value)) return showErr("Fyll i ditt namn.", first);
         if (!isValidPhone(phone.value())) return showErr("Fyll i ett giltigt telefonnummer, t.ex. 70 123 45 67.", tel);
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail.value.trim())) return showErr("Fyll i din e-post, så skickar vi en bekräftelse.", mail);
         showErr("");
-        state.contact = { first: first.value.trim(), last: last.value.trim(), email: mail.value.trim(), msg: msg.value.trim() };
+        state.contact = { name: first.value.replace(/\s+/g, " ").trim(), tel: tel.value, email: mail.value.trim(), msg: msg.value.trim() };
         // One "Label: answer" per line, hair length + thickness together on
         // the first; the free-text message always last (it may span lines).
         var noteParts = [];
@@ -2348,10 +2527,11 @@
             staffId: state.slot.staffId || undefined,
             serviceLabel: state.service.name,
             durationMinutes: state.service.durationMinutes,
-            customerName: state.contact.first + " " + state.contact.last,
+            customerName: state.contact.name,
             customerPhone: phone.value(),
             customerEmail: state.contact.email,
             customerNote: noteParts.join("\n") || undefined,
+            photos: state.photos.length ? state.photos.map(function (p) { return p.b64; }) : undefined,
           }),
         })
           .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, status: r.status, body: b }; }); })
@@ -2361,9 +2541,8 @@
             nextBtn.textContent = "Bekräfta bokning";
             if (res.status === 409) {
               state.slot = null;
+              state.notice = "Tiden hann bokas av någon annan. Välj en ny tid.";
               goTo(steps.indexOf("time"));
-              var taken = body.querySelector(".booking-cal-next-available");
-              if (taken) { taken.hidden = false; taken.textContent = "Tiden hann bokas av någon annan. Välj en ny tid."; }
               return;
             }
             showErr(res.body.error || "Kunde inte boka den tiden.");
@@ -2374,10 +2553,26 @@
             showErr("Kunde inte nå bokningssystemet just nu.");
           });
       });
-      first.focus();
+      // a computer starts in the name field; on a phone the keyboard would cover the summary before it is read
+      if (!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches)) first.focus();
     }
 
     // ---- step: done ----
+    /** A calendar entry for the booked visit as a data: link (.ics, local time, no time zone needed). */
+    function calendarFile(serviceName, dateStr, time, minutes, staff) {
+      try {
+        var start = new Date(dateStr + "T" + time + ":00"), end = new Date(start.getTime() + (minutes || 30) * 60000);
+        var stamp = function (d) { return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + "T" + pad2(d.getHours()) + pad2(d.getMinutes()) + "00"; };
+        var esc = function (t) { return String(t || "").replace(/\\/g, "\\\\").replace(/[,;]/g, "\\$&").replace(/\s+/g, " ").trim(); };
+        var siteName = (document.querySelector('meta[property="og:site_name"]') || {}).content || document.title.split(/\s[|–-]\s/)[0] || "";
+        var lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Skyltfonstret//Bokning//SV", "BEGIN:VEVENT",
+          "UID:" + stamp(start) + "-" + Math.random().toString(36).slice(2) + "@bokning",
+          "DTSTAMP:" + stamp(new Date()), "DTSTART:" + stamp(start), "DTEND:" + stamp(end),
+          "SUMMARY:" + esc(serviceName + (siteName ? " hos " + siteName : "")),
+          staff ? "DESCRIPTION:" + esc("Hos " + staff) : "", "URL:" + location.origin + location.pathname, "END:VEVENT", "END:VCALENDAR"].filter(Boolean);
+        return "data:text/calendar;charset=utf-8," + encodeURIComponent(lines.join("\r\n"));
+      } catch (e) { return ""; }
+    }
     function renderDoneStep() {
       title.textContent = "Klart!";
       var done = mk("div", "bf-done");
@@ -2389,6 +2584,14 @@
       if (who) done.appendChild(mk("p", "bf-done-line", "Hos " + who));
       if (state.confirmationEmailSent && state.contact && state.contact.email) {
         done.appendChild(mk("p", "bf-done-fine", "Vi har skickat en bekräftelse till " + state.contact.email + ". Där kan du också avboka."));
+      }
+      // The visit into the visitor's own calendar (2026-11-14): a small .ics file made here, nothing is sent anywhere.
+      var ics = calendarFile(state.service.name, state.slot.dateStr, state.slot.time, state.service.durationMinutes, who);
+      if (ics) {
+        var cal = mk("a", "bf-done-cal", "Lägg till i kalendern");
+        cal.href = ics;
+        cal.setAttribute("download", "bokning.ics");
+        done.appendChild(cal);
       }
       done.appendChild(mk("p", "bf-done-fine", "Vi ser fram emot ditt besök."));
       body.appendChild(done);
@@ -2402,7 +2605,7 @@
     // a note. Fewer steps, like Voady. The optional message to the stylist
     // stays in the details step (its hint still comes from the profile).
     function stepsFor(profile, withVariant) {
-      return (withVariant ? ["variant"] : []).concat(["staff", "time", "details", "done"]);
+      return (withVariant ? ["variant"] : []).concat(["time", "details", "done"]);
     }
     function open(service) {
       // A broad service group (wireServiceGroups): pick the exact variant first.
@@ -2411,7 +2614,7 @@
       var group = service.variants && service.variants.length > 1 ? service : null;
       var first = group ? group.variants[0] : service;
       var profile = useHairStep ? profileFor(first.name) : { questions: [] };
-      state = { group: group, service: group ? { name: group.name, durationMinutes: null, priceLabel: group.priceLabel || "" } : service, variantPicked: !group, profile: profile, answers: {}, staff: null, slot: null, weekOffset: 0, weekPicked: false, contact: null };
+      state = { group: group, service: group ? { name: group.name, durationMinutes: null, priceLabel: group.priceLabel || "" } : service, variantPicked: !group, profile: profile, answers: {}, staff: null, slot: null, dayStr: null, notice: "", weekOffset: 0, weekPicked: false, contact: state && state.contact ? state.contact : null, photos: [] };
       steps = stepsFor(profile, !!group);
       popup.classList.add("is-open");
       var opened = state;
@@ -2464,6 +2667,7 @@
   }
 
   var WEEKDAY_SHORT = ["Sön", "Mån", "Tis", "Ons", "Tors", "Fre", "Lör"];
+  var WEEKDAY_LONG = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
 
   // Hero intro (2026-10-01): builds the standard name-driven hero animation
   // from ONE bare tag — `<h1 class="hero-intro" data-effect="lockup"
@@ -2812,7 +3016,9 @@
     var existing = Array.prototype.filter.call(root.children, function (el) { return el.classList.contains("menu-group"); });
     var cats = [], byCat = {};
     services.forEach(function (s) {
-      var cat = String(s.category || "").trim() || (existing.length === 1 ? groupLabel(existing[0]) : "Övrigt");
+      // a service in a group is listed in the group's own category, wherever the service itself belongs
+      var home = s.group_id && byId[s.group_id] ? String(byId[s.group_id].category || "").trim() : "";
+      var cat = home || String(s.category || "").trim() || (existing.length === 1 ? groupLabel(existing[0]) : "Övrigt");
       var k = cat.toLowerCase();
       if (!byCat[k]) { byCat[k] = []; cats.push(cat); }
       byCat[k].push(s);
